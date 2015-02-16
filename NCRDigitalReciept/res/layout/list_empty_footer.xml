@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@android:color/transparent"
+    android:orientation="vertical" >
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/start_shopping_button_size"
+        android:layout_marginBottom="@dimen/start_shopping_button_margin_bottom"
+        android:layout_marginTop="@dimen/start_shopping_button_margin_bottom"
+        android:background="@android:color/transparent" />
+
+</LinearLayout>

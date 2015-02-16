@@ -1,0 +1,106 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/ncr_green_color" >
+
+    <FrameLayout
+         android:id="@+id/activity_main_drawer_frame_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/ncr_green_color" 
+       >
+
+        <android.support.v4.widget.DrawerLayout
+            android:id="@+id/activity_main_drawer_drawer_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/ncr_green_color" >
+
+            <FrameLayout
+                android:id="@+id/activity_main_drawer_content_frame"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <RelativeLayout
+                android:id="@+id/activity_main_drawer_left_drawer"
+                android:layout_width="240dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="start"
+                android:background="@android:color/white" >
+
+                <FrameLayout
+                    android:id="@+id/activity_main_drawer_left_frame"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentTop="true"
+                    android:layout_centerHorizontal="true"
+                    android:maxHeight="180dp" >
+
+                    <com.example.UIControls.CustomImageView
+                        android:id="@+id/activity_main_drawer_left_drawer_image"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:adjustViewBounds="true"
+                        android:contentDescription="@string/user_image"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/default_user_image" />
+
+                    <TextView
+                        android:id="@+id/activity_main_drawer_left_drawer_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|center_horizontal"
+                        android:paddingBottom="10dp"
+                        android:paddingEnd="10dp"
+                        android:paddingStart="10dp"
+                        android:paddingTop="5dp"
+                        android:shadowColor="#000000"
+                        android:shadowDx="0.0"
+                        android:shadowDy="0.0"
+                        android:shadowRadius="3.0"
+                        android:text="@string/default_name"
+                        android:textColor="@android:color/white"
+                        android:textSize="@dimen/text_size_header" />
+                </FrameLayout>
+
+                <ListView
+                    android:id="@+id/activity_main_drawer_left_drawer_items"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:layout_below="@id/activity_main_drawer_left_frame"
+                    android:layout_gravity="start"
+                    android:background="@android:color/white"
+                    android:choiceMode="singleChoice"
+                    android:divider="@android:color/transparent"
+                    android:dividerHeight="0dp"
+                    android:paddingTop="5dp" />
+            </RelativeLayout>
+        </android.support.v4.widget.DrawerLayout>
+
+        <ImageButton
+            android:layout_width="@dimen/start_shopping_button_size"
+            android:layout_height="@dimen/start_shopping_button_size"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="@dimen/start_shopping_button_margin_bottom"
+            android:background="@drawable/go_shopping_button_background"
+            android:src="@drawable/shopping_card" />
+    </FrameLayout>
+
+    <RelativeLayout
+        android:id="@+id/activity_main_drawer_loading"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_centerInParent="true"
+        android:visibility="gone" >
+
+        <ProgressBar
+            android:id="@+id/progressBar1"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerInParent="true" />
+    </RelativeLayout>
+
+</RelativeLayout>
