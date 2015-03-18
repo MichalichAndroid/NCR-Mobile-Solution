@@ -26,10 +26,12 @@ public class Application extends android.app.Application {
 
 	public static final String PushTokenId = "PushTokenId";
 	public static final String SharedPreferencesName = "com.example.ncrdigitalreciept";
-	public static String UpdateList_ACTION = "com.example.ncrdigitalreciept.UpdateList";
-	public static String UpdateMainMenu_ACTION = "com.example.ncrdigitalreciept.UpdateMainMenu";
+	public static String UpdateList_ACTION = "com.example.ncrmobilesolutions.UpdateList";
+	public static String UpdateMainMenu_ACTION = "com.example.ncrmobilesolutions.UpdateMainMenu";
 	public static final String UserNameKey = "UserNameKey";
 	public static final String LastFetchDateKey = "LastFetchDateKey";
+	
+	
 
 	private static Context context;
 
@@ -58,9 +60,11 @@ public class Application extends android.app.Application {
 		 * <key>FacebookAppID</key> <string></string>
 		 * <key>FacebookDisplayName</key> <string>NCR Receipts</string>
 		 */
-		ParseFacebookUtils.initialize("1591217224448027");
-		ParseTwitterUtils.initialize("mtRTM5d2lVViR2JJ9ZpC75hXg",
-				"6HnMg8YC0b8IZbJdl7VvBDDclw86XbP1EZlPIQfDyovvk0tTmn");
+		
+		UpdateInstalation();
+		ParseFacebookUtils.initialize("1002365463126175");
+		ParseTwitterUtils.initialize("f6QN6eoNDXA9VOj6mRegsXGlG",
+				"xZZUUcy9KaTxJbZL75rhKL7IDGmMK2ItzeNO7EtdSsuIxYX9if");
 		initPayPalLibrary();
 
 		// ParseUser.enableAutomaticUser();
@@ -102,7 +106,13 @@ public class Application extends android.app.Application {
 			parseInstallation.remove("user");
 		}
 
-		parseInstallation.saveInBackground();
+	//	parseInstallation.saveInBackground();
+		try {
+			parseInstallation.save();
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	public static void SetUserName(String string) {
@@ -153,7 +163,7 @@ public class Application extends android.app.Application {
 			// This main initialization call takes your Context, AppID, and
 			// target server
 			pp = PayPal.initWithAppID(this, "APP-80W284485P519543T",
-					PayPal.ENV_NONE);
+					PayPal.ENV_SANDBOX);
 
 			// Required settings:
 

@@ -16,6 +16,7 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ListView;
 
+import com.example.datastructions.ParseResponseObject;
 import com.parse.FindCallback;
 import com.parse.FunctionCallback;
 import com.parse.ParseCloud;
@@ -49,7 +50,8 @@ public class ShoppingHistoryFragment extends Fragment {
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 
-		DownloadAllReciepts();
+		if (savedInstanceState == null)
+			DownloadAllReciepts();
 	}
 
 	public void onStart() {
@@ -81,19 +83,25 @@ public class ShoppingHistoryFragment extends Fragment {
 		params.put("lastFetchTime", Application.GetLastFetchDate());
 
 		ParseUser currentUser = ParseUser.getCurrentUser();
-		String functionName = "fetchReceiptsByInstallationId";
-		if (currentUser != null) {
-			functionName = "fetchReceiptsByUser";
-		}
+		String functionName = "fetchReceipts";
+
 		ParseCloud.callFunctionInBackground(functionName, params,
-				new FunctionCallback<Object>() {
+				new FunctionCallback<HashMap<String, Object>>() {
 
 					@Override
-					public void done(Object response, ParseException exception) {
+					public void done(HashMap<String, Object> res,
+							ParseException exception) {
+						if (exception != null) {
+							ShowReceiptsFromStorage();
+							return;
+						}
+						ParseResponseObject parseResponseObject = new ParseResponseObject(
+								res);
 
-						if (response instanceof java.util.ArrayList) {
+						if (parseResponseObject.GetStatus().equals("1")) {
 
-							OnSuccesDownload((ArrayList<ParseObject>) response);
+							OnSuccesDownload((ArrayList<ParseObject>) parseResponseObject
+									.GetData());
 
 						} else {
 							ShowReceiptsFromStorage();
@@ -218,7 +226,7 @@ public class ShoppingHistoryFragment extends Fragment {
 			SetFinishDownloadVisability();
 		} catch (Exception exception) {
 			exception.printStackTrace();
-			Restart();
+			// Restart();
 		}
 
 	}
@@ -235,12 +243,20 @@ public class ShoppingHistoryFragment extends Fragment {
 	}
 
 	private void ShowRecieptAtPosition(int position) {
+		if (position >= ShoppingHistoryFragment.this.reciepts.size())
+			return;
+
 		Intent intent = new Intent(getActivity(), RecieptViewActivity.class);
 		intent.putExtra(
 				"reciept",
 				ShoppingHistoryFragment.this.reciepts.get(position).getString(
 						"receipt"));
 		startActivity(intent);
+	}
+
+	public void UpdateList() {
+		DownloadAllReciepts();
+
 	}
 
 }

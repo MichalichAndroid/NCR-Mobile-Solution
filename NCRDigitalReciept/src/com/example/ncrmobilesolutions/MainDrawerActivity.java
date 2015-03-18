@@ -35,9 +35,12 @@ import com.paypal.android.MEP.PayPalPreapproval;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.app.NotificationManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
@@ -63,13 +66,21 @@ public class MainDrawerActivity extends Activity {
 	private static final int LoginActivityId = 5;
 	public static final int PayPalPreapprove = 6;
 
-	// private String[] mLeftTitles = new String[] { "left1", "left2", "left3"
-	// };
 	private String[] mRightTitles = new String[] { "right1", "right2", "right3" };
 	private DrawerLayout mDrawerLayout;
 	private ListView mLeftDrawerList;
+	SyncCodeDialog syncCodeDialog;
+	Fragment currentFragment;
 
-	// private ListView mRightDrawerList;
+	protected BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+
+			MainDrawerActivity.this.onReceive(context, intent);
+
+		}
+
+	};
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -83,10 +94,6 @@ public class MainDrawerActivity extends Activity {
 				R.layout.custom_title_bar);
 		mDrawerLayout = (DrawerLayout) findViewById(R.id.activity_main_drawer_drawer_layout);
 		mLeftDrawerList = (ListView) findViewById(R.id.activity_main_drawer_left_drawer_items);
-		// mRightDrawerList = (ListView)
-		// findViewById(R.id.activity_main_drawer_right_drawer);
-
-		// Set the adapter for the list view
 
 		String[] leftTitles = new String[] {
 				getString(R.string.shopping_history_entry),
@@ -95,7 +102,6 @@ public class MainDrawerActivity extends Activity {
 		mLeftDrawerList.setAdapter(new ArrayAdapter<String>(this,
 				android.R.layout.simple_list_item_1, leftTitles));
 
-		// Set the list's click listener
 		mLeftDrawerList
 				.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
@@ -107,21 +113,6 @@ public class MainDrawerActivity extends Activity {
 					}
 
 				});
-
-		/*
-		 * mRightDrawerList.setAdapter(new ArrayAdapter<String>(this,
-		 * android.R.layout.simple_list_item_1, mRightTitles));
-		 * 
-		 * mRightDrawerList .setOnItemClickListener(new
-		 * AdapterView.OnItemClickListener() {
-		 * 
-		 * @Override public void onItemClick(AdapterView<?> parent, View view,
-		 * int position, long id) { onRightItemClicked(position);
-		 * 
-		 * }
-		 * 
-		 * });
-		 */
 
 		findViewById(R.id.activity_main_drawer_left_drawer_image)
 				.setOnClickListener(new View.OnClickListener() {
@@ -143,8 +134,89 @@ public class MainDrawerActivity extends Activity {
 
 	}
 
+	protected void onDestroy() {
+		currentFragment = null;
+		super.onDestroy();
+
+	}
+
+	protected void onReceive(Context context, Intent intent) {
+		TreatOnPushMessage(intent);
+
+	}
+
+	private void TreatOnPushMessage(Intent intent) {
+		if (syncCodeDialog != null)
+			syncCodeDialog.dismiss();
+		String reasonCodePushFlag = intent
+				.getStringExtra(Receiver.ReasonCodePushFlag);
+		if (reasonCodePushFlag.equals(Receiver.RecieptPushReason)) {
+			if (currentFragment == null) {
+				InitDefaultFragment();
+				return;
+			}
+			if (currentFragment.getClass()
+					.equals(ShoppingHistoryFragment.class)) {
+
+				((ShoppingHistoryFragment) currentFragment).UpdateList();
+				return;
+			}
+		} else if (reasonCodePushFlag.equals(Receiver.PaymentPushReason)) {
+
+			String paymentId = intent
+					.getStringExtra(Receiver.PaymentIdPushFlag);
+			ShowPaymentDialog(paymentId);
+
+		}
+	}
+
+	private void ShowPaymentDialog(String paymentId) {
+		ApprovePaymentDialog approvePaymentDialog = new ApprovePaymentDialog(
+				this, false, new DialogInterface.OnCancelListener() {
+
+					@Override
+					public void onCancel(DialogInterface dialog) {
+						// TODO Auto-generated method stub
+
+					}
+				}, paymentId);
+		try {
+			approvePaymentDialog.show();
+		} catch (Exception exception) {
+			exception.printStackTrace();
+		}
+
+	}
+
+	public void onStart() {
+		super.onStart();
+		IntentFilter filter = new IntentFilter();
+		filter.addAction(Application.UpdateMainMenu_ACTION);
+		registerReceiver(mMessageReceiver, filter);
+		NotificationManager mNotificationManager = (NotificationManager) (MainDrawerActivity.this
+				.getApplicationContext()
+				.getSystemService(Context.NOTIFICATION_SERVICE));
+		mNotificationManager.cancel(Receiver.NotificationId);
+	}
+
+	public void onStop() {
+		unregisterReceiver(mMessageReceiver);
+		super.onStop();
+
+	}
+
 	public void InitDefaultFragment() {
 		OnShoppingHistoryClicked();
+		
+		boolean fromPush = getIntent().getBooleanExtra(Receiver.FromPushFlag,
+				false);
+		
+		if (fromPush)
+		{
+			getIntent().putExtra(Receiver.FromPushFlag,
+					false);
+			TreatOnPushMessage(getIntent());
+		}
 
 	}
 
@@ -173,25 +245,23 @@ public class MainDrawerActivity extends Activity {
 	private void OnPaymentClicked() {
 		SetTitleText(getString(R.string.payment_entry));
 
-		
-		  Fragment fragment = new PayPalFragment(); android.app.FragmentManager
-		  fragmentManager = getFragmentManager();
-		  fragmentManager.beginTransaction()
-		 .replace(R.id.activity_main_drawer_content_frame, fragment)
-		  .commit();
-		 
-
-		
+		currentFragment = new PayPalFragment();
+		android.app.FragmentManager fragmentManager = getFragmentManager();
+		fragmentManager
+				.beginTransaction()
+				.replace(R.id.activity_main_drawer_content_frame,
+						currentFragment).commit();
 
 	}
 
 	private void OnShoppingHistoryClicked() {
 		SetTitleText(getString(R.string.shopping_history_entry));
-		Fragment fragment = new ShoppingHistoryFragment();
+		currentFragment = new ShoppingHistoryFragment();
 		android.app.FragmentManager fragmentManager = getFragmentManager();
-		fragmentManager.beginTransaction()
-				.replace(R.id.activity_main_drawer_content_frame, fragment)
-				.commit();
+		fragmentManager
+				.beginTransaction()
+				.replace(R.id.activity_main_drawer_content_frame,
+						currentFragment).commit();
 
 	}
 
@@ -220,7 +290,7 @@ public class MainDrawerActivity extends Activity {
 	}
 
 	public void onRightClick(View view) {
-		SyncCodeDialog syncCodeDialog = new SyncCodeDialog(this, true,
+		syncCodeDialog = new SyncCodeDialog(this, true,
 				new DialogInterface.OnCancelListener() {
 
 					@Override
@@ -278,9 +348,9 @@ public class MainDrawerActivity extends Activity {
 		}
 
 		if (requestCode == PayPalPreapprove) {
-			
-			 super.onActivityResult(requestCode, resultCode, data);
-			 InitDefaultFragment();
+
+			super.onActivityResult(requestCode, resultCode, data);
+			InitDefaultFragment();
 		}
 	}
 
@@ -482,7 +552,5 @@ public class MainDrawerActivity extends Activity {
 					}
 				}).executeAsync();
 	}
-
-
 
 }

@@ -13,28 +13,31 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.hardware.display.DisplayManager;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.util.Log;
+import android.view.Display;
 
 import com.parse.ParsePushBroadcastReceiver;
 
 public class Receiver extends ParsePushBroadcastReceiver {
 
 	public static final String FromPushFlag = "FromPushFlag";
-	public static final int NotificationId = 325436546;
+	public static final int NotificationId = 325436547;
+	
+	public static final String RecieptPushReason="0";
+	public static final String PaymentPushReason="1";
+	
+	public static final String ReasonCodePushFlag="pushReason";
+	public static final String PaymentIdPushFlag="paymentId";
 
 	@Override
 	public void onPushOpen(Context context, Intent intent) {
 		Log.e("Push", "Clicked");
 
-		/*
-		 * Intent i = new Intent(context, HomeActivity.class);
-		 * i.putExtras(intent.getExtras());
-		 * i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK); context.startActivity(i);
-		 */
-		// super.onPushReceive(arg0, arg1);
 	}
 
 	@Override
@@ -45,13 +48,17 @@ public class Receiver extends ParsePushBroadcastReceiver {
 		String jsonData = extras.getString("com.parse.Data");
 		String heading = "";
 		String dataString = "";
-		String pincode = "";
+		String reasonCode = "";
+		String paymentId = "";
+
 		JSONObject jsonObject;
 		try {
 			jsonObject = new JSONObject(jsonData);
 			heading = jsonObject.getString("title");
 			dataString = jsonObject.getString("alert");
-			pincode = jsonObject.getInt("pinCode") + "";
+			reasonCode = jsonObject.getInt(ReasonCodePushFlag) + "";
+			if (!jsonObject.isNull(PaymentIdPushFlag))
+				paymentId = jsonObject.getString(PaymentIdPushFlag);
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
@@ -60,29 +67,28 @@ public class Receiver extends ParsePushBroadcastReceiver {
 		Application.RegenerateOfBarcodeRequired = true;
 		isAppRunning = FindIsAppRunning(context.getApplicationContext());
 		if (!isAppRunning) {
-			OpenFromBackground(context, heading, dataString);
+			OpenFromBackground(context, heading, dataString,reasonCode,paymentId);
 
 		} else {
-			if (FindActivity(".RecieptsActivity", context)) {
-				updateMyActivity(context, "df", Application.UpdateList_ACTION);
-			}
-
-			if (FindActivity(".MainActivity", context)) {
+			if (FindActivity(".MainDrawerActivity", context)) {
 				updateMyActivity(context, "df",
-						Application.UpdateMainMenu_ACTION);
+						Application.UpdateMainMenu_ACTION,reasonCode,paymentId);
+			} else {
+				OpenFromBackground(context, heading, dataString,reasonCode,paymentId);
 			}
-		}
 
-		// boolean isActivityFound = FindActivity(messagetype, context);
+		}
 
 	}
 
 	@SuppressLint("NewApi")
 	private void OpenFromBackground(Context context, String heading,
-			String dataString) {
+			String dataString, String reasonCode, String paymentId) {
 		Intent notIntent = new Intent(context.getApplicationContext(),
-				MainActivity.class);
+				MainDrawerActivity.class);
 		notIntent.putExtra(FromPushFlag, true);
+		notIntent.putExtra(ReasonCodePushFlag, reasonCode);
+		notIntent.putExtra(PaymentIdPushFlag, paymentId);
 
 		PendingIntent pIntent = PendingIntent.getActivity(
 				context.getApplicationContext(), 0, notIntent,
@@ -122,6 +128,10 @@ public class Receiver extends ParsePushBroadcastReceiver {
 	}
 
 	private Boolean FindIsAppRunning(Context context) {
+
+		if (!IsDisplayOn(context))
+			return false;
+
 		Boolean isAppRunning = false;
 		ActivityManager activityManager = (ActivityManager) context
 				.getSystemService(Context.ACTIVITY_SERVICE);
@@ -132,6 +142,14 @@ public class Receiver extends ParsePushBroadcastReceiver {
 			isAppRunning = true;
 		}
 		return isAppRunning;
+	}
+
+	private Boolean IsDisplayOn(Context context) {
+
+		// If you use less than API20:
+		PowerManager powerManager = (PowerManager) context
+				.getSystemService(context.POWER_SERVICE);
+		return (powerManager.isScreenOn());
 	}
 
 	private Boolean FindActivity(String activityName, Context context) {
@@ -152,9 +170,11 @@ public class Receiver extends ParsePushBroadcastReceiver {
 		return isactivityFound;
 	}
 
-	static void updateMyActivity(Context context, String message, String action) {
+	static void updateMyActivity(Context context, String message, String action, String reasonCode, String paymentId) {
 
 		Intent broadcast = new Intent();
+		broadcast.putExtra(ReasonCodePushFlag, reasonCode);
+		broadcast.putExtra(PaymentIdPushFlag, paymentId);
 		broadcast.setAction(action);
 		context.sendBroadcast(broadcast);
 	}

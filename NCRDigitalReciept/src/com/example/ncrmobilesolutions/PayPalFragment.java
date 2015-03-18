@@ -2,9 +2,12 @@ package com.example.ncrmobilesolutions;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Map;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Fragment;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,6 +15,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.datastructions.ParseResponseObject;
 import com.parse.FunctionCallback;
 import com.parse.ParseCloud;
 import com.parse.ParseException;
@@ -82,16 +86,44 @@ public class PayPalFragment extends Fragment {
 						if (result.getClass().equals(HashMap.class))
 
 						{
-							HashMap parseRes = (HashMap) result;
-							key = parseRes.get("preapprovalKey").toString();
-							ShowPreaproovalDialog(key);
-							return;
+							ParseResponseObject parseRes = new ParseResponseObject(
+									(HashMap<String, Object>) result);
+
+							String resCode = parseRes.GetStatus();
+							String message = parseRes.GetMessage();
+							HashMap<String, Object> data = (HashMap<String, Object>) parseRes
+									.GetData();
+
+							if (resCode.equals("1")) {
+								key = data.get("preapprovalKey").toString();
+								ShowPreaproovalDialog(key);
+								return;
+							} else {
+								ShowErrorDialog(resCode, message);
+							}
 						}
 
 						ShowPreaproovalDialog(key);
 
 					}
+
 				});
+
+	}
+
+	private void ShowErrorDialog(String resCode, String message) {
+		new AlertDialog.Builder(getActivity())
+				.setTitle("Error " + resCode)
+				.setMessage(message)
+				.setPositiveButton(android.R.string.ok,
+						new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog,
+									int which) {
+								FinishActivity();
+							}
+						})
+
+				.setIcon(android.R.drawable.ic_dialog_alert).show();
 
 	}
 
@@ -103,6 +135,7 @@ public class PayPalFragment extends Fragment {
 		PayPalPreapproval preapproval = new PayPalPreapproval();
 		pp.setPreapprovalKey(key);
 		preapproval.setType(PayPalPreapproval.TYPE_AGREE);
+		preapproval.setPinRequired(true);
 		preapproval.setMerchantName("NCR Demo");
 		PayPalResult palResult = new PayPalResult();
 		Intent preapproveIntent = PayPal.getInstance().preapprove(preapproval,
@@ -125,30 +158,58 @@ public class PayPalFragment extends Fragment {
 				Log.i("PayPalResponse", errorID + "  =" + errorMessage);
 			}
 			if (resultCode == Activity.RESULT_OK) {
-				FinishActivity();
+
+				Map<String, Object> params = new HashMap<String, Object>();
+				ParseCloud.callFunctionInBackground(
+						"confirmPayPalPreapprovalKey", params,
+						new FunctionCallback<HashMap<String, Object>>() {
+
+							@Override
+							public void done(HashMap<String, Object> arg0,
+									ParseException arg1) {
+
+								if (arg1 != null) {
+									ShowErrorDialog("-1", arg1.getMessage());
+									return;
+								}
+								ParseResponseObject parseRes = new ParseResponseObject(
+										(HashMap<String, Object>) arg0);
+
+								String resCode = parseRes.GetStatus();
+								String message = parseRes.GetMessage();
+
+								if (resCode.equals("1")) {
+
+									FinishActivity();
+									return;
+								} else {
+									ShowErrorDialog(resCode, message);
+								}
+
+								// FinishActivity();
+
+							}
+
+						});
+
 			}
 			if (resultCode == Activity.RESULT_CANCELED) {
-				FinishActivity();	
+				FinishActivity();
 			}
 
 		}
 	}
-	
-	private void FinishActivity()
-	{
-		
+
+	private void FinishActivity() {
+
 		Activity activity = getActivity();
-		activity.getFragmentManager().beginTransaction()
-		.remove(this).commit();
-		if (activity.getClass().equals(MainDrawerActivity.class)  )
-		{
-			((MainDrawerActivity)activity).InitDefaultFragment();
+		activity.getFragmentManager().beginTransaction().remove(this).commit();
+		if (activity.getClass().equals(MainDrawerActivity.class)) {
+			((MainDrawerActivity) activity).InitDefaultFragment();
 		}
 	}
-	
-	
-	public class PayPalResult implements PayPalResultDelegate,Serializable
-	{
+
+	public class PayPalResult implements PayPalResultDelegate, Serializable {
 
 		/**
 		 * 
@@ -158,24 +219,22 @@ public class PayPalFragment extends Fragment {
 		@Override
 		public void onPaymentCanceled(String arg0) {
 			// TODO Auto-generated method stub
-			
+
 		}
 
 		@Override
 		public void onPaymentFailed(String arg0, String arg1, String arg2,
 				String arg3, String arg4) {
 			// TODO Auto-generated method stub
-			
+
 		}
 
 		@Override
 		public void onPaymentSucceeded(String arg0, String arg1) {
 			// TODO Auto-generated method stub
-			
+
 		}
-		
+
 	}
-	
-	
 
 }

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2" xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
-    <string name="application_id">GI0onNPgipudQrPflEVJJBQz83Ms9GuuaUXzIawS</string>
-    <string name="client_id">r1ch0MW8clfboCMxFSIkZqsxv8wPTXiU8f1LWAVd</string>
+    <string name="application_id">8fi9V1TROEXHlMDH9TfsT7Tg2DSYZa68fKwjXHS3</string>
+    <string name="client_id">G3sQxvaYqaZ3ScxXeIC7ti6IvAo2CWWyA79mtXr0</string>
     <string name="app_name">NCR Mobile Solutions</string>
     <string name="hello_world">Hello world!</string>
     <string name="generate_barcode">Generate Barcode</string>
@@ -31,5 +31,10 @@
     <string name="payment_entry">connect to paypal</string>
     <string name="shopping_history_entry">shopping history</string>
     <string name="shopping_list_entry">shopping list</string>
+    <string name="Decline">Decline</string>
+    <string name="Confirm">Confirm</string>
+    <string name="payment_approve_disclaimer">To confirm payment, please type in your Pay Pal pincode choosen during connection of Pay Pal to your account</string>
+    <string name="pincodeHint">Tap to enter PayPal pincode</string>
+    <string name="no_pincode_error">Required insert pincode minimum 4 digits length</string>
 
 </resources>

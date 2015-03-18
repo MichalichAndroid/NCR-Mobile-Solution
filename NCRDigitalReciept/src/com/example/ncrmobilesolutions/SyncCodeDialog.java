@@ -19,6 +19,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.example.datastructions.ParseResponseObject;
 import com.google.zxing.BarcodeFormat;
 import com.parse.FunctionCallback;
 import com.parse.ParseCloud;
@@ -40,6 +41,7 @@ public class SyncCodeDialog extends Dialog implements android.view.View.OnClickL
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		super.onCreate(savedInstanceState);
 		setContentView(R.layout.sync_code_dialog);
 		SetDialogBehaviour();
 
@@ -83,24 +85,24 @@ public class SyncCodeDialog extends Dialog implements android.view.View.OnClickL
 				params.put("installationId", ParseInstallation
 						.getCurrentInstallation().getInstallationId());
 
-				ParseCloud.callFunctionInBackground("registerReceipt", params,
-						new FunctionCallback<ParseObject>() {
+				ParseCloud.callFunctionInBackground("createAssociation", params,
+						new FunctionCallback<HashMap<String, Object>>() {
 
 							@Override
-							public void done(ParseObject arg0,
+							public void done(HashMap<String, Object> arg0,
 									ParseException arg1) {
 								try {
 
 									if (arg0 == null) {
-										arg0 = new ParseObject("aaaaaaaaa");
+										arg0 = new HashMap<String, Object>();
 									}
 									Log.i("MainActivity", arg0.toString());
 									if (arg1 != null) {
 										arg1.printStackTrace();
 
 									}
-
-									int pincode = arg0.getInt("pinCode");
+									ParseResponseObject parseResponce = new ParseResponseObject(arg0);
+									int pincode = (Integer) parseResponce.GetData();
 									int size = GetBitmapSize();
 									QRCodeEncoder qrCodeEncoder = new QRCodeEncoder(
 											pincode + "", null,
